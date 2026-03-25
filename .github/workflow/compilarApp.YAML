@@ -1,0 +1,53 @@
+# 1. NOME DA TAREFA
+name: Gerar APK do Delivery
+
+# 2. O GATILHO: Quando o servidor deve acordar?
+on:
+  push:
+    branches: [ "main", "master" ] # Acorda toda vez que você enviar código novo para a branch principal
+
+# 3. O TRABALHO: O que ele vai fazer?
+jobs:
+  build:
+    runs-on: ubuntu-latest # Pede para a Microsoft separar um servidor Linux Ubuntu zerado para nós
+
+    steps:
+    # Passo A: O servidor nasce vazio. Isso manda ele baixar seus arquivos do GitHub para dentro dele.
+    - name: 📥 Baixar o código
+      uses: actions/checkout@v4
+
+    # Passo B: Instala o Node.js no servidor para ele poder ler o seu package.json
+    - name: ⚙️ Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    # Passo C: O servidor baixa o Capacitor e as dependências que você configurou
+    - name: 📦 Instalar dependências
+      run: npm install
+
+    # Passo D: Se a pasta "android" não existir lá, ele cria. Depois, injeta seu HTML lá dentro.
+    - name: Sincronizar Capacitor
+      run: |
+        npx cap add android || true
+        npx cap sync android
+
+    # Passo E: Aplicativos Android precisam do Java para serem construídos. O servidor instala agora.
+    - name: ☕ Configurar Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    # Passo F: Autoriza o "motor" do Android (Gradle) a funcionar e manda ele gerar o aplicativo.
+    - name: 🚀 Compilar o APK
+      run: |
+        chmod +x android/gradlew
+        cd android && ./gradlew assembleDebug
+
+    # Passo G: O APK está pronto, mas preso no servidor. Isso salva o arquivo e cria o botão de download para você.
+    - name: 💾 Salvar o Instalador
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-delivery-pronto
+        path: android/app/build/outputs/apk/debug/app-debug.apk
