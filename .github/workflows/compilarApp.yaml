@@ -37,7 +37,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
-        java-version: '17'
+        java-version: '21'
 
     # Passo F: Autoriza o "motor" do Android (Gradle) a funcionar e manda ele gerar o aplicativo.
     - name: 🚀 Compilar o APK
