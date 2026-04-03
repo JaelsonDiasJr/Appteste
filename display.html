@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telão do Quiz</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    body { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; color: #333; }
+    h1 { font-size: 3rem; margin-bottom: 10px; }
+    .pin { font-size: 8rem; font-weight: bold; color: #0076ff; letter-spacing: 15px; margin: 10px 0; }
+    #qrcode { padding: 20px; background: white; border-radius: 15px; }
+    .jogadores-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; max-width: 80%; margin-top: 30px; }
+    .jogador-badge { background: #333; color: white; padding: 10px 25px; border-radius: 30px; font-size: 1.5rem; font-weight: bold; }
+    
+    /* Telas Dinâmicas */
+    .tela { display: none; width: 90%; max-width: 1000px; text-align: center; flex-direction: column; }
+    .tela.ativa { display: flex; }
+
+    /* Jogo */
+    #textoPergunta { font-size: 3.5rem; background: white; padding: 40px; border-radius: 15px; margin-bottom: 20px; }
+    .grid-opcoes-telao { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .opcao-telao { padding: 30px; font-size: 2.5rem; color: white; border-radius: 15px; font-weight: bold; }
+    .bg-a { background-color: #e21b3c; } .bg-b { background-color: #1368ce; } .bg-c { background-color: #d89e00; } .bg-d { background-color: #26890c; }
+    #tempoRestante { font-size: 4rem; font-weight: bold; color: #dc3545; }
+
+    /* Ranking e Pódio */
+    .ranking-lista { list-style: none; padding: 0; font-size: 2rem; width: 100%; max-width: 600px; margin: 0 auto; }
+    .ranking-item { display: flex; justify-content: space-between; background: white; padding: 15px 30px; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .podio-top { background: #ffd700; color: #856404; border: 2px solid #ffeeba; font-size: 2.5rem; font-weight: bold;}
+    .podio-segundo { background: #c0c0c0; color: #383d41; }
+    .podio-terceiro { background: #cd7f32; color: #fff; }
+  </style>
+</head>
+<body>
+
+  <div id="telaAguardando" class="tela ativa">
+    <h1>Entre no Quiz!</h1>
+    <div class="pin" id="pinDisplay">------</div>
+    <div style="display:flex; justify-content:center;"><div id="qrcode"></div></div>
+    <div class="jogadores-grid" id="listaJogadoresTelao"></div>
+  </div>
+
+  <div id="telaJogo" class="tela">
+    <div id="tempoRestante">20</div>
+    <div id="textoPergunta">...</div>
+    <div class="grid-opcoes-telao">
+      <div class="opcao-telao bg-a" id="dispOpt0">A)</div> <div class="opcao-telao bg-b" id="dispOpt1">B)</div>
+      <div class="opcao-telao bg-c" id="dispOpt2">C)</div> <div class="opcao-telao bg-d" id="dispOpt3">D)</div>
+    </div>
+  </div>
+
+  <div id="telaRanking" class="tela">
+    <h1 id="tituloRanking">Ranking Atual</h1>
+    <ul class="ranking-lista" id="listaRanking"></ul>
+  </div>
+
+  <div id="telaFimEspera" class="tela">
+    <h1>Fim de Jogo!</h1>
+    <p style="font-size: 2rem;">Aguardando o administrador liberar o pódio...</p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA2dxpfl9XwTjtX-DK4GBNihLMrQ8MVaDQ", authDomain: "meuquizapp-60807.firebaseapp.com",
+      databaseURL: "https://meuquizapp-60807-default-rtdb.firebaseio.com", projectId: "meuquizapp-60807",
+      storageBucket: "meuquizapp-60807.firebasestorage.app", messagingSenderId: "1036916991385", appId: "1:1036916991385:web:d1823e90a3c4fccb829f08"
+    };
+
+    const db = getDatabase(initializeApp(firebaseConfig));
+    const pin = new URLSearchParams(window.location.search).get('pin');
+    let timerInterval;
+
+    function mudarTela(idTela) {
+      document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+      document.getElementById(idTela).classList.add('ativa');
+    }
+
+    if (pin) {
+      document.getElementById('pinDisplay').innerText = pin;
+      new QRCode(document.getElementById("qrcode"), { text: pin, width: 200, height: 200 });
+
+      // Escuta lista de jogadores no lobby
+      onValue(ref(db, 'salas/' + pin + '/jogadores'), (snapshot) => {
+        const dados = snapshot.val();
+        document.getElementById('listaJogadoresTelao').innerHTML = dados ? Object.keys(dados).map(n => `<div class="jogador-badge">${n}</div>`).join('') : '';
+      });
+
+      // Escuta o Status Geral do Jogo
+      onValue(ref(db, 'salas/' + pin), (snapshot) => {
+        const sala = snapshot.val();
+        if (!sala) return;
+
+        if (sala.status === 'pergunta') {
+          mudarTela('telaJogo');
+          const p = sala.perguntas[sala.pergunta_atual];
+          document.getElementById('textoPergunta').innerText = p.pergunta;
+          document.getElementById('dispOpt0').innerText = "A) " + p.opcoes[0];
+          document.getElementById('dispOpt1').innerText = "B) " + p.opcoes[1];
+          document.getElementById('dispOpt2').innerText = "C) " + p.opcoes[2];
+          document.getElementById('dispOpt3').innerText = "D) " + p.opcoes[3];
+
+          // Inicia o cronômetro no telão
+          clearInterval(timerInterval);
+          timerInterval = setInterval(() => {
+            let restante = Math.ceil((sala.timestamp_fim - Date.now()) / 1000);
+            document.getElementById('tempoRestante').innerText = restante > 0 ? restante : "Tempo Esgotado!";
+          }, 200);
+
+        } else if (sala.status === 'ranking' || sala.status === 'podio') {
+          clearInterval(timerInterval);
+          mudarTela('telaRanking');
+          document.getElementById('tituloRanking').innerText = sala.status === 'podio' ? "🏆 Pódio Final 🏆" : "Pontuação Parcial";
+          
+          // Ordena os jogadores por pontos
+          const pontos = sala.pontuacoes || {};
+          const rankingFormatado = Object.entries(pontos).sort((a, b) => b[1] - a[1]);
+          
+          const listaUI = document.getElementById('listaRanking');
+          listaUI.innerHTML = '';
+          rankingFormatado.forEach((jogadorData, index) => {
+            let classeCores = '';
+            if (sala.status === 'podio') {
+              if(index === 0) classeCores = 'podio-top';
+              if(index === 1) classeCores = 'podio-segundo';
+              if(index === 2) classeCores = 'podio-terceiro';
+            }
+            listaUI.innerHTML += `<li class="ranking-item ${classeCores}"><span>${index+1}º ${jogadorData[0]}</span> <span>${jogadorData[1]} pts</span></li>`;
+          });
+
+        } else if (sala.status === 'fim_espera') {
+          mudarTela('telaFimEspera');
+        }
+      });
+    }
+  </script>
+</body>
+</html>
