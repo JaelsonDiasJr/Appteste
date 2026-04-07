@@ -1,0 +1,90 @@
+.container { 
+    text-align: center;
+    margin-top: 40px;
+    padding: 0 20px;
+ }
+
+.title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.grid-opcoes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.btn-opcao { 
+    height: 120px;
+    font-size: 30px;
+    font-weight: bold;
+    border-radius: 10px;
+    color: white;
+    border: none;
+}
+
+.btn-a { 
+    background-color: #e21b3c;
+} 
+
+.btn-b { 
+    background-color: #1368ce;
+}
+
+.btn-c { 
+    background-color: #d89e00;
+}
+
+ .btn-d { 
+    background-color: #26890c;
+ }
+
+.desativado {
+    opacity: 0.5;
+    pointer-events: none; 
+}
+
+.pontos-finais { 
+    font-size: 40px;
+    color: #28a745;
+    font-weight: bold;
+    margin: 20px 0; }
+
+/* Quando a classe scanner-active estiver no body, deixamos tudo transparente */
+body.scanner-active,
+body.scanner-active ons-navigator,
+body.scanner-active .page__background,
+body.scanner-active .page__content {
+    background: transparent !important;
+}
+
+/* Esconde o conteúdo da tela atual para não atrapalhar a visão da câmera */
+body.scanner-active .container,
+body.scanner-active ons-toolbar {
+    display: none !important;
+}
+
+/* Botão flutuante para cancelar a leitura (só aparece quando a câmera tá aberta) */
+#btn-fechar-camera {
+    display: none;
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    background-color: #e21b3c;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: bold;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+body.scanner-active #btn-fechar-camera {
+    display: block;
+}
