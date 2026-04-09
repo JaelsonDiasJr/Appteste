@@ -87,39 +87,55 @@ function iniciarEscutaDaSala() {
       }, 300); // pequeno delay pra garantir que a tela carregou
     }
   });
-    window.abrirCamera = async function() {
-    // 1. Verifica se está rodando no celular de verdade
-    // Plugins nativos não funcionam no "Go Live" do navegador de computador
-    if (!window.Capacitor || !window.Capacitor.isNativePlatform()) {
-      ons.notification.alert('O leitor nativo só funciona no aplicativo instalado no celular.');
+      window.abrirCamera = async function() {
+    // Passo 1: Verifica se o clique do botão está funcionando
+    alert("1. Botão foi clicado! Iniciando testes...");
+
+    // Passo 2: Verifica se a ponte do Capacitor existe
+    if (!window.Capacitor) {
+      alert("ERRO: O objeto Capacitor não existe na página.");
       return;
     }
 
-    const { BarcodeScanner } = Capacitor.Plugins;
+    // Passo 3: Verifica se o Capacitor sabe que está no celular
+    if (!window.Capacitor.isNativePlatform()) {
+      alert("ERRO: O sistema acha que estamos no navegador, não no app nativo.");
+      return;
+    }
+
+    // Passo 4: Verifica se o plugin foi injetado corretamente
+    const BarcodeScanner = window.Capacitor.Plugins.BarcodeScanner;
+    if (!BarcodeScanner) {
+      // Se falhar aqui, ele vai listar quais plugins estão instalados de verdade
+      const pluginsInstalados = Object.keys(window.Capacitor.Plugins).join(", ");
+      alert("ERRO: Plugin da Câmera não encontrado. Plugins disponíveis: " + pluginsInstalados);
+      return;
+    }
 
     try {
-      // 2. Pede permissão para usar a câmera do Android
+      alert("2. Pedindo permissão da câmera pro Android...");
       const status = await BarcodeScanner.checkPermission({ force: true });
+
       if (!status.granted) {
-        ons.notification.alert('Precisamos da permissão da câmera para ler o QR Code.');
+        alert("ERRO: Permissão negada.");
         return;
       }
 
-      // 3. Deixa o fundo do HTML transparente e esconde os elementos
+      alert("3. Permissão OK! Escondendo a interface web...");
       document.body.classList.add('scanner-active');
       await BarcodeScanner.hideBackground();
 
-      // 4. Inicia o scanner (o código pausa aqui até achar um QR Code)
+      alert("4. Ligando o leitor de QR Code...");
       const result = await BarcodeScanner.startScan();
 
-      // 5. Se achou um código, restaura a tela e preenche o input
       if (result.hasContent) {
-        fecharCamera(); // Restaura o fundo e para a câmera
+        alert("5. SUCESSO! Código lido: " + result.content);
+        fecharCamera();
         document.getElementById('roomCode').value = result.content;
-        ons.notification.toast('Código lido com sucesso!', { timeout: 2000 });
       }
     } catch (error) {
-      ons.notification.alert('Erro ao iniciar a câmera nativa.');
+      // Se der qualquer erro nativo, o JSON.stringify vai transformar o erro em texto pra gente ler
+      alert("ERRO NATIVO CATASTRÓFICO: " + JSON.stringify(error));
       fecharCamera();
     }
   };
