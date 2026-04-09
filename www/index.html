@@ -10,17 +10,27 @@
   <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
 
   <link rel="stylesheet" href="css/style.css">
+
 </head>
 <body>
 
   <ons-navigator swipeable id="myNavigator" page="join.html"></ons-navigator>
 
   <template id="join.html">
-    <ons-page><ons-toolbar><div class="center">Entrar no Quiz</div></ons-toolbar>
-      <div class="container"><div class="title">Bem-vindo!</div>
+    <ons-page>
+      <ons-toolbar><div class="center">Entrar no Quiz</div></ons-toolbar>
+      <div class="container">
+        <div class="title">Bem-vindo!</div>
         <ons-input id="roomCode" modifier="underbar" placeholder="PIN da Sala" float type="number"></ons-input><br><br>
         <ons-button modifier="large" onclick="avancarParaNome()">Entrar na Sala</ons-button>
-      </div></ons-page>
+        <br><br>
+        
+        <ons-button modifier="large--outline" onclick="abrirCamera()">
+          <ons-icon icon="md-camera"></ons-icon> Ler QR Code
+        </ons-button>
+        
+      </div>
+    </ons-page>
   </template>
 
   <template id="name.html">
