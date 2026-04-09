@@ -19,7 +19,7 @@ jobs:
 
       - name: Instalar e Sincronizar
         run: |
-          npm install
+          npm install --legacy-peer-deps
           npx cap sync android
 
       - name: Gerar APK com Gradle
