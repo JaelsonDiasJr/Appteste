@@ -1,3 +1,113 @@
+/* =========================================================
+   ESTILOS DA NOVA TELA INICIAL (join.html)
+   ========================================================= */
+
+#tela-inicial .page__background {
+  background-color: transparent; /* Remove o fundo padrão do Onsen na tela inicial */
+}
+
+/* Fundo da tela inicial */
+.background-amarelo {
+  background-color: #fce353; /* Amarelo vibrante da imagem */
+  height: 100vh; /* Garante que ocupe a tela toda */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 30px;
+  box-sizing: border-box;
+}
+
+/* Container centralizado para a logo */
+.area-logo {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* O card branco do QUIZ */
+.card-quiz {
+  background-color: #ffffff;
+  border: 4px solid #000000;
+  border-radius: 12px;
+  padding: 30px 50px;
+  transform: rotate(-5deg);
+  position: relative;
+  box-shadow: 6px 6px 0px #000000;
+}
+
+.card-quiz h1 {
+  margin: 0;
+  font-size: 54px;
+  font-weight: 900;
+  color: #000000;
+  font-family: 'Arial Black', sans-serif;
+  letter-spacing: 2px;
+}
+
+/* Decorações do card */
+.decoracao {
+  position: absolute;
+  font-weight: bold;
+  font-size: 28px;
+  color: #000000;
+}
+.decor-1 { top: -20px; left: 10px; transform: rotate(15deg); }
+.decor-2 { bottom: -15px; right: 20px; transform: rotate(-20deg); }
+
+/* Área dos botões na parte de baixo */
+.area-acao {
+  padding-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Estilo do campo de inserir código */
+#roomCode {
+  width: 100%;
+  background-color: #ffffff;
+  border: 3px solid #000000;
+  border-radius: 10px;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+#roomCode input {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  color: #000000;
+}
+
+#roomCode input::placeholder {
+  color: #888;
+  font-weight: bold;
+}
+
+/* Estilo do botão ENTRAR */
+#btn-entrar {
+  background-color: #ffffff;
+  color: #000000;
+  border: 3px solid #000000;
+  border-radius: 10px;
+  font-weight: 900;
+  font-size: 22px;
+  box-shadow: 4px 4px 0px #000000;
+  transition: all 0.1s ease;
+  line-height: normal; /* Sobrescreve o line-height do Onsen */
+  padding: 12px 0;
+}
+
+#btn-entrar:active {
+  box-shadow: 0px 0px 0px #000000;
+  transform: translate(4px, 4px);
+}
+
+/* =========================================================
+   ESTILOS ORIGINAIS (Outras telas e Scanner)
+   ========================================================= */
+
 .container { 
     text-align: center;
     margin-top: 40px;
@@ -27,21 +137,10 @@
     border: none;
 }
 
-.btn-a { 
-    background-color: #e21b3c;
-} 
-
-.btn-b { 
-    background-color: #1368ce;
-}
-
-.btn-c { 
-    background-color: #d89e00;
-}
-
- .btn-d { 
-    background-color: #26890c;
- }
+.btn-a { background-color: #e21b3c; } 
+.btn-b { background-color: #1368ce; }
+.btn-c { background-color: #d89e00; }
+.btn-d { background-color: #26890c; }
 
 .desativado {
     opacity: 0.5;
@@ -52,7 +151,8 @@
     font-size: 40px;
     color: #28a745;
     font-weight: bold;
-    margin: 20px 0; }
+    margin: 20px 0; 
+}
 
 /* Quando a classe scanner-active estiver no body, deixamos tudo transparente */
 body.scanner-active,
@@ -68,7 +168,7 @@ body.scanner-active ons-toolbar {
     display: none !important;
 }
 
-/* Botão flutuante para cancelar a leitura (só aparece quando a câmera tá aberta) */
+/* Botão flutuante para cancelar a leitura */
 #btn-fechar-camera {
     display: none;
     position: fixed;

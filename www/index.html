@@ -17,18 +17,22 @@
   <ons-navigator swipeable id="myNavigator" page="join.html"></ons-navigator>
 
   <template id="join.html">
-    <ons-page>
-      <ons-toolbar><div class="center">Entrar no Quiz</div></ons-toolbar>
-      <div class="container">
-        <div class="title">Bem-vindo!</div>
-        <ons-input id="roomCode" modifier="underbar" placeholder="PIN da Sala" float type="number"></ons-input><br><br>
-        <ons-button modifier="large" onclick="avancarParaNome()">Entrar na Sala</ons-button>
-        <br><br>
+    <ons-page id="tela-inicial">
+      <div class="background-amarelo">
         
-        <ons-button modifier="large--outline" onclick="abrirCamera()">
-          <ons-icon icon="md-camera"></ons-icon> Ler QR Code
-        </ons-button>
-        
+        <div class="area-logo">
+          <div class="card-quiz">
+            <h1>QUIZ</h1>
+            <span class="decoracao decor-1">?</span>
+            <span class="decoracao decor-2">!</span>
+          </div>
+        </div>
+
+        <div class="area-acao">
+          <ons-input id="roomCode" type="number" placeholder="Código da Sala" modifier="transparent"></ons-input>
+          <ons-button id="btn-entrar" modifier="large" onclick="avancarParaNome()">ENTRAR</ons-button>
+        </div>
+
       </div>
     </ons-page>
   </template>
@@ -64,7 +68,6 @@
     </ons-page>
   </template>
 
-  <button id="btn-fechar-camera" onclick="fecharCamera()">Cancelar Leitura</button>
-  <script type="module" src="js/app.js "></script> 
+  <script type="module" src="js/app.js"></script> 
 </body>
 </html>

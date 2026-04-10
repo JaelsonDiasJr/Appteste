@@ -10,7 +10,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@capacitor-community/barcode-scanner": "^4.0.1",
     "@capacitor/android": "^8.3.0",
     "@capacitor/cli": "^7.6.1",
     "@capacitor/core": "^8.3.0",
