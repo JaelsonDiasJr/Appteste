@@ -12,25 +12,28 @@
     .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     .card h2 { margin-top: 0; border-bottom: 2px solid #0076ff; padding-bottom: 10px; color: #0076ff; }
     .form-group { margin-bottom: 15px; }
-    input[type="text"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    input[type="text"], input[type="number"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
     .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .options-grid div { display: flex; align-items: center; gap: 8px; background: #f8f9fa; padding: 8px; border-radius: 4px; border: 1px solid #eee; }
     .btn { background-color: #0076ff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; margin-bottom: 10px;}
     .btn:hover { background-color: #005bb5; }
     .btn-start { background-color: #28a745; font-size: 20px; }
     .btn-action { background-color: #ffc107; color: #333; font-size: 14px; padding: 5px 15px; width: auto; margin: 0;}
     .btn-danger { background-color: #dc3545; color: white; padding: 5px 10px; font-size: 12px; margin-left: 10px; border: none; border-radius: 4px; cursor: pointer;}
-    .btn-danger:hover { background-color: #c82333; }
     #pinDisplay { font-size: 48px; font-weight: bold; text-align: center; letter-spacing: 5px; margin: 10px 0; color: #333; }
     .player-list { list-style: none; padding: 0; }
     .player-item { display: flex; justify-content: space-between; align-items: center; background: #e9ecef; padding: 8px 15px; border-radius: 5px; margin-bottom: 5px; font-weight: bold; }
     #painelJogoAtivo { display: none; background: #fff3cd; border: 2px solid #ffeeba; }
     .timer-display { font-size: 30px; font-weight: bold; color: #dc3545; text-align: center; }
     .pergunta-card { background: #f8f9fa; padding: 10px; border-radius: 5px; border-left: 4px solid #0076ff; margin-bottom: 10px; }
+    .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; text-transform: uppercase; color: white; margin-left: 5px; }
+    .badge-unica { background: #17a2b8; }
+    .badge-multi { background: #6f42c1; }
   </style>
 </head>
 <body>
 
-  <div class="header"><h1>Painel de Controle do Jogo</h1></div>
+  <div class="header"><h1>Controle do Quiz (Híbrido)</h1></div>
 
   <div class="dashboard">
     <div class="column">
@@ -41,59 +44,56 @@
       </div>
 
       <div class="card" style="margin-top: 20px;">
-        <h2>3. Sala de Espera (Lobby)</h2>
-        <p>Jogadores conectados: <span id="playerCount">0</span></p>
+        <h2>3. Sala de Espera</h2>
+        <p>Jogadores: <span id="playerCount">0</span></p>
         <ul class="player-list" id="lobbyList"></ul>
         <button class="btn btn-start" id="btnIniciar" onclick="iniciarJogo()">Iniciar Jogo Agora!</button>
       </div>
 
       <div class="card" id="painelJogoAtivo" style="margin-top: 20px;">
         <h2>Controle da Partida</h2>
-        <p>Pergunta Atual: <span id="adminStatusPergunta">1</span></p>
+        <p>Pergunta: <span id="adminStatusPergunta">1</span></p>
         <div class="timer-display" id="adminTimer">00</div>
         <button class="btn" id="btnProxima" style="display:none;" onclick="proximaPergunta()">Próxima Pergunta</button>
-        <button class="btn btn-start" id="btnPodio" style="display:none;" onclick="mostrarPodio()">Liberar Resultado Final</button>
-        
-        <button class="btn btn-danger" id="btnEncerrar" style="display:none; margin-top: 20px; width: 100%; font-size: 16px; padding: 15px;" onclick="encerrarSala()">Encerrar Sala e Limpar Servidor</button>
+        <button class="btn btn-start" id="btnPodio" style="display:none;" onclick="mostrarPodio()">Resultado Final</button>
+        <button class="btn btn-danger" id="btnEncerrar" style="display:none; width: 100%;" onclick="encerrarSala()">Encerrar e Limpar Sala</button>
       </div>
     </div>
 
     <div class="column">
       <div class="card">
-        <h2>2. Criar ou Editar Perguntas</h2>
-        <div class="form-group"><input type="text" id="perguntaTexto" placeholder="Pergunta?"></div>
-        <div class="options-grid form-group">
-          <div><input type="radio" name="correta" value="0" checked> <input type="text" id="opt0" placeholder="A"></div>
-          <div><input type="radio" name="correta" value="1"> <input type="text" id="opt1" placeholder="B"></div>
-          <div><input type="radio" name="correta" value="2"> <input type="text" id="opt2" placeholder="C"></div>
-          <div><input type="radio" name="correta" value="3"> <input type="text" id="opt3" placeholder="D"></div>
+        <h2>2. Criar Pergunta</h2>
+        <div class="form-group">
+          <label>Tipo de Resposta:</label>
+          <select id="tipoPergunta" onchange="alternarInputsResposta()">
+            <option value="unica">Única Escolha (Radio)</option>
+            <option value="multipla">Múltipla Escolha (Checkbox)</option>
+          </select>
         </div>
-        <div class="form-group"><label>Tempo (segundos):</label><input type="number" id="tempoPergunta" value="20"></div>
+        <div class="form-group"><input type="text" id="perguntaTexto" placeholder="Digite a pergunta aqui..."></div>
         
-        <button class="btn" id="btnFormPergunta" onclick="salvarOuAtualizarPergunta()">Adicionar à Lista</button>
-        <button class="btn btn-danger" id="btnCancelarEdicao" style="display:none; width: 100%; margin-left: 0;" onclick="cancelarEdicao()">Cancelar Edição</button>
+        <div class="options-grid form-group" id="containerOpcoes">
+          </div>
+
+        <div class="form-group"><label>Tempo (s):</label><input type="number" id="tempoPergunta" value="20"></div>
+        <button class="btn" id="btnFormPergunta" onclick="salvarOuAtualizarPergunta()">Adicionar Pergunta</button>
+        <button class="btn btn-danger" id="btnCancelarEdicao" style="display:none; width: 100%; margin-left: 0;" onclick="cancelarEdicao()">Cancelar</button>
         
         <div style="margin-top: 20px;">
-          <h3>Lista de Perguntas Atual:</h3>
-          <div id="listaPerguntas">Nenhuma pergunta na lista.</div>
-          <button class="btn btn-danger" style="width: 100%; margin-top: 10px; font-size: 14px; margin-left: 0;" onclick="limparListaAtual()">Limpar Lista Completa</button>
+          <h3>Lista Atual:</h3>
+          <div id="listaPerguntas"></div>
+          <button class="btn btn-danger" style="width: 100%; margin-top: 10px;" onclick="limparListaAtual()">Limpar Lista</button>
         </div>
       </div>
 
       <div class="card" style="margin-top: 20px;">
-        <h2>4. Banco de Quizzes Salvos</h2>
-        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
-          <label>Salvar a lista atual para usar depois:</label>
-          <div style="display: flex; gap: 10px; margin-top: 5px;">
-            <input type="text" id="nomeNovoQuiz" placeholder="Ex: Quiz de Tecnologia" style="margin-bottom: 0;">
-            <button class="btn btn-start" style="margin-bottom: 0; font-size: 14px;" onclick="salvarQuizNoBanco()">Salvar</button>
-          </div>
+        <h2>4. Banco de Quizzes</h2>
+        <div style="display: flex; gap: 5px;">
+          <input type="text" id="nomeNovoQuiz" placeholder="Nome do Quiz">
+          <button class="btn btn-start" style="width: auto;" onclick="salvarQuizNoBanco()">Salvar</button>
         </div>
-
-        <h3>Meus Quizzes:</h3>
-        <ul class="player-list" id="listaQuizzesBanco"></ul>
+        <ul class="player-list" id="listaQuizzesBanco" style="margin-top: 10px;"></ul>
       </div>
-
     </div>
   </div>
 
@@ -112,244 +112,175 @@
 
     let codigoSala = "";
     let perguntas = [];
+    let editandoIndex = -1;
     let perguntaAtualIndex = 0;
     let timerInterval;
-    let editandoIndex = -1;
 
-    // --- GERENCIAMENTO DE PERGUNTAS LOCAIS ---
-    window.salvarOuAtualizarPergunta = function() {
-      const texto = document.getElementById('perguntaTexto').value;
-      const opt0 = document.getElementById('opt0').value; const opt1 = document.getElementById('opt1').value;
-      const opt2 = document.getElementById('opt2').value; const opt3 = document.getElementById('opt3').value;
-      const tempo = parseInt(document.getElementById('tempoPergunta').value);
-      const correta = parseInt(document.querySelector('input[name="correta"]:checked').value);
-
-      if(!texto || !opt0 || !opt1 || !opt2 || !opt3) { alert("Preencha a pergunta e todas as alternativas!"); return; }
+    // Alterna dinamicamente entre radio e checkbox no formulário
+    window.alternarInputsResposta = function() {
+      const tipo = document.getElementById('tipoPergunta').value;
+      const container = document.getElementById('containerOpcoes');
+      const inputType = tipo === 'unica' ? 'radio' : 'checkbox';
       
-      const novaPergunta = { pergunta: texto, opcoes: [opt0, opt1, opt2, opt3], respostaCorreta: correta, tempo: tempo };
-
-      if (editandoIndex >= 0) {
-        perguntas[editandoIndex] = novaPergunta;
-        cancelarEdicao(); 
-      } else {
-        perguntas.push(novaPergunta);
-        limparFormularioPergunta();
+      container.innerHTML = '';
+      for(let i=0; i<4; i++) {
+        container.innerHTML += `
+          <div>
+            <input type="${inputType}" name="correta" value="${i}">
+            <input type="text" id="opt${i}" placeholder="Opção ${String.fromCharCode(65+i)}">
+          </div>
+        `;
       }
-      
+    };
+
+    window.salvarOuAtualizarPergunta = function() {
+      const tipo = document.getElementById('tipoPergunta').value;
+      const texto = document.getElementById('perguntaTexto').value;
+      const opts = [
+        document.getElementById('opt0').value, document.getElementById('opt1').value,
+        document.getElementById('opt2').value, document.getElementById('opt3').value
+      ];
+      const tempo = parseInt(document.getElementById('tempoPergunta').value);
+      const marcados = Array.from(document.querySelectorAll('input[name="correta"]:checked')).map(cb => parseInt(cb.value));
+
+      if(!texto || opts.some(o => !o)) { alert("Preencha tudo!"); return; }
+      if(marcados.length === 0) { alert("Marque a(s) correta(s)!"); return; }
+
+      const novaP = { 
+        pergunta: texto, opcoes: opts, 
+        respostasCorretas: marcados, 
+        tipo: tipo, tempo: tempo 
+      };
+
+      if(editandoIndex >= 0) perguntas[editandoIndex] = novaP;
+      else perguntas.push(novaP);
+
+      cancelarEdicao();
       atualizarInterfaceDaLista();
-      if(codigoSala !== "") update(ref(db, 'salas/' + codigoSala), { perguntas: perguntas });
+      if(codigoSala) update(ref(db, `salas/${codigoSala}`), { perguntas });
     };
 
     window.editarPerguntaDaLista = function(index) {
       editandoIndex = index;
       const p = perguntas[index];
+      document.getElementById('tipoPergunta').value = p.tipo;
+      alternarInputsResposta(); // Reseta os tipos de input
       
       document.getElementById('perguntaTexto').value = p.pergunta;
-      document.getElementById('opt0').value = p.opcoes[0];
-      document.getElementById('opt1').value = p.opcoes[1];
-      document.getElementById('opt2').value = p.opcoes[2];
-      document.getElementById('opt3').value = p.opcoes[3];
+      p.opcoes.forEach((opt, i) => document.getElementById(`opt${i}`).value = opt);
       document.getElementById('tempoPergunta').value = p.tempo;
-      document.querySelector(`input[name="correta"][value="${p.respostaCorreta}"]`).checked = true;
+      
+      p.respostasCorretas.forEach(val => {
+        const input = document.querySelector(`input[name="correta"][value="${val}"]`);
+        if(input) input.checked = true;
+      });
 
-      const btn = document.getElementById('btnFormPergunta');
-      btn.innerText = "Atualizar Pergunta";
-      btn.style.backgroundColor = "#ffc107";
-      btn.style.color = "#333";
+      document.getElementById('btnFormPergunta').innerText = "Atualizar";
       document.getElementById('btnCancelarEdicao').style.display = "block";
-    };
-
-    window.excluirPerguntaDaLista = function(index) {
-      if(confirm("Remover esta pergunta da lista?")) {
-        perguntas.splice(index, 1);
-        if(editandoIndex === index) cancelarEdicao(); 
-        atualizarInterfaceDaLista();
-        if(codigoSala !== "") update(ref(db, 'salas/' + codigoSala), { perguntas: perguntas });
-      }
     };
 
     window.cancelarEdicao = function() {
       editandoIndex = -1;
-      limparFormularioPergunta();
-      
-      const btn = document.getElementById('btnFormPergunta');
-      btn.innerText = "Adicionar à Lista";
-      btn.style.backgroundColor = "#0076ff";
-      btn.style.color = "white";
+      document.getElementById('perguntaTexto').value = "";
+      document.getElementById('tempoPergunta').value = "20";
+      alternarInputsResposta();
+      document.getElementById('btnFormPergunta').innerText = "Adicionar Pergunta";
       document.getElementById('btnCancelarEdicao').style.display = "none";
     };
 
-    function limparFormularioPergunta() {
-      document.getElementById('perguntaTexto').value = "";
-      document.getElementById('opt0').value = "";
-      document.getElementById('opt1').value = "";
-      document.getElementById('opt2').value = "";
-      document.getElementById('opt3').value = "";
-      document.getElementById('tempoPergunta').value = "20";
-      document.querySelector(`input[name="correta"][value="0"]`).checked = true;
-    }
-
     function atualizarInterfaceDaLista() {
-      const divLista = document.getElementById('listaPerguntas'); 
-      divLista.innerHTML = "";
-      if(perguntas.length === 0) {
-        divLista.innerHTML = "Nenhuma pergunta na lista.";
-        return;
-      }
-      
+      const div = document.getElementById('listaPerguntas');
+      div.innerHTML = perguntas.length ? "" : "Vazio.";
       perguntas.forEach((p, i) => {
-        divLista.innerHTML += `
+        div.innerHTML += `
           <div class="pergunta-card">
-            <div style="font-weight: bold; margin-bottom: 5px;">${i+1}. ${p.pergunta} <span style="font-weight:normal; color:#666;">(${p.tempo}s)</span></div>
+            <strong>${i+1}. ${p.pergunta}</strong> 
+            <span class="badge ${p.tipo === 'unica' ? 'badge-unica' : 'badge-multi'}">${p.tipo}</span>
+            <br>
             <button class="btn-action" onclick="editarPerguntaDaLista(${i})">Editar</button>
-            <button class="btn-danger" onclick="excluirPerguntaDaLista(${i})">Excluir</button>
+            <button class="btn-danger" onclick="excluirP(${i})">X</button>
           </div>
         `;
       });
     }
 
-    window.limparListaAtual = function() {
-      if(confirm("Tem certeza que deseja apagar a lista atual de perguntas?")) {
-        perguntas = [];
-        cancelarEdicao();
-        atualizarInterfaceDaLista();
-        if(codigoSala !== "") update(ref(db, 'salas/' + codigoSala), { perguntas: perguntas });
-      }
-    }
+    window.excluirP = function(i) { perguntas.splice(i, 1); atualizarInterfaceDaLista(); };
+    window.limparListaAtual = function() { perguntas = []; atualizarInterfaceDaLista(); };
 
-    // --- BANCO DE QUIZZES (SALVAR E CARREGAR) ---
-    window.salvarQuizNoBanco = function() {
-      const nomeQuiz = document.getElementById('nomeNovoQuiz').value;
-      if (!nomeQuiz) { alert("Digite um nome para o Quiz!"); return; }
-      if (perguntas.length === 0) { alert("Adicione perguntas à lista antes de salvar!"); return; }
-
-      const quizzesRef = ref(db, 'quizzes');
-      const novoQuizRef = push(quizzesRef);
-      
-      set(novoQuizRef, { nome: nomeQuiz, perguntas: perguntas })
-        .then(() => {
-          alert("Quiz salvo com sucesso no banco!");
-          document.getElementById('nomeNovoQuiz').value = "";
-        }).catch(e => alert("Erro ao salvar: " + e));
-    };
-
-    window.carregarQuizDoBanco = async function(quizId) {
-      if(perguntas.length > 0) {
-        if(!confirm("Isso vai substituir as perguntas atuais não salvas. Continuar?")) return;
-      }
-
-      const snap = await get(ref(db, `quizzes/${quizId}`));
-      if(snap.exists()) {
-        perguntas = snap.val().perguntas || [];
-        cancelarEdicao();
-        atualizarInterfaceDaLista();
-        if(codigoSala !== "") update(ref(db, 'salas/' + codigoSala), { perguntas: perguntas });
-        alert(`Quiz carregado! (${perguntas.length} perguntas)`);
-      }
-    };
-
-    window.excluirQuizDoBanco = function(quizId, nomeQuiz) {
-      if(confirm(`Tem certeza que deseja excluir o quiz "${nomeQuiz}" permanentemente?`)) {
-        remove(ref(db, `quizzes/${quizId}`));
-      }
-    };
-
-    onValue(ref(db, 'quizzes'), (snapshot) => {
-      const dados = snapshot.val();
-      const listaUI = document.getElementById('listaQuizzesBanco');
-      listaUI.innerHTML = '';
-      if(dados) {
-        Object.keys(dados).forEach(key => {
-          const quiz = dados[key];
-          listaUI.innerHTML += `
-            <li class="player-item">
-              <span>${quiz.nome} <br><small>(${quiz.perguntas ? quiz.perguntas.length : 0} Qs)</small></span>
-              <div>
-                <button class="btn btn-action" onclick="carregarQuizDoBanco('${key}')">Carregar</button>
-                <button class="btn btn-danger" onclick="excluirQuizDoBanco('${key}', '${quiz.nome}')">X</button>
-              </div>
-            </li>
-          `;
-        });
-      } else {
-        listaUI.innerHTML = "Nenhum quiz salvo ainda.";
-      }
-    });
-
-    // --- GERENCIAMENTO DA SALA E DO JOGO ---
+    // --- LOGICA DE SALA ---
     window.gerarSala = function() {
       codigoSala = Math.floor(100000 + Math.random() * 900000).toString();
       document.getElementById('pinDisplay').innerText = codigoSala;
-      set(ref(db, 'salas/' + codigoSala), { status: 'aguardando', perguntas: perguntas, pergunta_atual: 0, pontuacoes: {} });
-      onValue(ref(db, 'salas/' + codigoSala + '/jogadores'), (snapshot) => {
-        const dados = snapshot.val();
-        const listaUI = document.getElementById('lobbyList'); listaUI.innerHTML = ''; 
-        if (dados) {
-          const nomes = Object.keys(dados); document.getElementById('playerCount').innerText = nomes.length;
-          nomes.forEach(nome => { listaUI.innerHTML += `<li class="player-item">${nome} <button class="btn btn-danger" onclick="removerJogador('${nome}')">Expulsar</button></li>`; });
-        } else { document.getElementById('playerCount').innerText = 0; }
+      set(ref(db, `salas/${codigoSala}`), { status: 'aguardando', perguntas, pergunta_atual: 0 });
+      onValue(ref(db, `salas/${codigoSala}/jogadores`), snap => {
+        const d = snap.val() || {};
+        document.getElementById('playerCount').innerText = Object.keys(d).length;
+        document.getElementById('lobbyList').innerHTML = Object.keys(d).map(n => `<li class="player-item">${n}</li>`).join('');
       });
       window.open(`display.html?pin=${codigoSala}`, '_blank');
     };
 
-    window.removerJogador = function(nome) { if(confirm(`Remover ${nome}?`)) remove(ref(db, `salas/${codigoSala}/jogadores/${nome}`)); };
-
     window.iniciarJogo = function() {
-      if(perguntas.length === 0 || codigoSala === "") { alert("Prepare a sala e perguntas!"); return; }
-      document.getElementById('painelJogoAtivo').style.display = 'block'; document.getElementById('btnIniciar').style.display = 'none';
+      if(!perguntas.length) return alert("Sem perguntas!");
+      document.getElementById('painelJogoAtivo').style.display = 'block';
       dispararPergunta(0);
     };
 
-    function dispararPergunta(index) {
-      perguntaAtualIndex = index; document.getElementById('adminStatusPergunta').innerText = index + 1;
-      document.getElementById('btnProxima').style.display = 'none'; document.getElementById('btnPodio').style.display = 'none';
-      const tempoTotal = perguntas[index].tempo; const tempoInicio = Date.now(); const tempoFim = tempoInicio + (tempoTotal * 1000);
-      set(ref(db, `salas/${codigoSala}/respostas`), null).then(() => { update(ref(db, `salas/${codigoSala}`), { status: 'pergunta', pergunta_atual: index, timestamp_inicio: tempoInicio, timestamp_fim: tempoFim }); });
+    function dispararPergunta(idx) {
+      perguntaAtualIndex = idx;
+      const p = perguntas[idx];
+      const inicio = Date.now();
+      const fim = inicio + (p.tempo * 1000);
+      
+      set(ref(db, `salas/${codigoSala}/respostas`), null).then(() => {
+        update(ref(db, `salas/${codigoSala}`), { 
+          status: 'pergunta', pergunta_atual: idx, 
+          timestamp_inicio: inicio, timestamp_fim: fim 
+        });
+      });
+
       clearInterval(timerInterval);
       timerInterval = setInterval(() => {
-        let restante = Math.ceil((tempoFim - Date.now()) / 1000);
-        if(restante <= 0) { clearInterval(timerInterval); document.getElementById('adminTimer').innerText = "Encerrado"; processarResultados(); } 
-        else { document.getElementById('adminTimer').innerText = restante + "s"; }
+        let res = Math.ceil((fim - Date.now()) / 1000);
+        document.getElementById('adminTimer').innerText = res > 0 ? res + "s" : "Fim!";
+        if(res <= 0) { clearInterval(timerInterval); processarResultados(); }
       }, 1000);
     }
 
     async function processarResultados() {
-      const salaRef = ref(db, `salas/${codigoSala}`); const snapshot = await get(salaRef); const dados = snapshot.val();
-      let pontuacoesAtuais = dados.pontuacoes || {}; const respostas = dados.respostas || {}; const pergunta = dados.perguntas[perguntaAtualIndex]; const tempoTotalMS = pergunta.tempo * 1000;
-      if(dados.jogadores) { Object.keys(dados.jogadores).forEach(j => { if(pontuacoesAtuais[j] === undefined) pontuacoesAtuais[j] = 0; }); }
-      for (const [jogador, respostaData] of Object.entries(respostas)) {
-        if (respostaData.alternativa === pergunta.respostaCorreta) {
-          let tempoGasto = respostaData.timestamp - dados.timestamp_inicio; if (tempoGasto < 0) tempoGasto = 0;
-          let pontosGanhos = Math.round((1 - (tempoGasto / tempoTotalMS)) * 1000); if (pontosGanhos < 0) pontosGanhos = 0;
-          pontuacoesAtuais[jogador] += pontosGanhos;
+      const snap = await get(ref(db, `salas/${codigoSala}`));
+      const dados = snap.val();
+      const p = dados.perguntas[perguntaAtualIndex];
+      let pts = dados.pontuacoes || {};
+      const resps = dados.respostas || {};
+
+      for(const [player, r] of Object.entries(resps)) {
+        const acertou = r.alternativas.length === p.respostasCorretas.length && 
+                        r.alternativas.every(v => p.respostasCorretas.includes(v));
+        if(acertou) {
+          const tempo = r.timestamp - dados.timestamp_inicio;
+          const ganho = Math.round((1 - (tempo / (p.tempo * 1000))) * 1000);
+          pts[player] = (pts[player] || 0) + (ganho > 0 ? ganho : 0);
         }
       }
-      update(salaRef, { pontuacoes: pontuacoesAtuais, status: 'ranking' });
-      if (perguntaAtualIndex + 1 < perguntas.length) { document.getElementById('btnProxima').style.display = 'block'; } 
-      else { document.getElementById('btnPodio').style.display = 'block'; update(salaRef, { status: 'fim_espera' }); }
+      update(ref(db, `salas/${codigoSala}`), { status: 'ranking', pontuacoes: pts });
+      document.getElementById(perguntaAtualIndex + 1 < perguntas.length ? 'btnProxima' : 'btnPodio').style.display = 'block';
     }
 
-    window.proximaPergunta = function() { dispararPergunta(perguntaAtualIndex + 1); };
-    
-    // NOVO: Atualiza a tela e mostra o botão de encerrar
+    window.proximaPergunta = function() { 
+      document.getElementById('btnProxima').style.display = 'none';
+      dispararPergunta(perguntaAtualIndex + 1); 
+    };
+
     window.mostrarPodio = function() { 
       update(ref(db, `salas/${codigoSala}`), { status: 'podio' }); 
       document.getElementById('btnEncerrar').style.display = 'block';
     };
 
-    // NOVO: Função para excluir a sala e resetar o painel
-    window.encerrarSala = function() {
-      if(confirm("Tem certeza? Isso vai apagar todos os dados desta partida do banco de dados.")) {
-        remove(ref(db, 'salas/' + codigoSala))
-          .then(() => {
-            alert("Sala encerrada e dados limpos com sucesso!");
-            window.location.reload(); 
-          })
-          .catch((error) => {
-            alert("Erro ao limpar a sala: " + error);
-          });
-      }
-    };
+    window.encerrarSala = function() { remove(ref(db, `salas/${codigoSala}`)).then(() => location.reload()); };
+
+    // Inicializa os inputs
+    alternarInputsResposta();
   </script>
 </body>
 </html>

@@ -22,14 +22,12 @@
         
         <div class="area-logo">
           <div class="card-quiz">
-            <h1>QUIZ</h1>
-            <span class="decoracao decor-1">?</span>
-            <span class="decoracao decor-2">!</span>
+            <h1>KomHoot</h1>
           </div>
         </div>
 
         <div class="area-acao">
-          <ons-input id="roomCode" type="number" placeholder="Código da Sala" modifier="transparent"></ons-input>
+          <input type="text" id="roomCode" placeholder="Código da Sala" autocomplete="off" />
           <ons-button id="btn-entrar" modifier="large" onclick="avancarParaNome()">ENTRAR</ons-button>
         </div>
 
@@ -38,31 +36,44 @@
   </template>
 
   <template id="name.html">
-    <ons-page><ons-toolbar><div class="center">Seu Perfil</div></ons-toolbar>
-      <div class="container"><div class="title">Como devemos te chamar?</div>
-        <ons-input id="playerName" modifier="underbar" placeholder="Seu Apelido" float></ons-input><br><br>
-        <ons-button modifier="large" onclick="entrarNoLobby()">Pronto!</ons-button>
-      </div></ons-page>
+    <ons-page>
+      <div class="background-amarelo tela-centralizada">
+        <div class="container card-padrao">
+          <div class="title" style="margin-bottom: 20px;">Como devemos te chamar?</div>
+          
+          <input type="text" id="playerName" class="input-padrao" placeholder="Seu Apelido" autocomplete="off" />
+          <br><br>
+          
+          <button class="btn-padrao" onclick="entrarNoLobby()">PRONTO!</button>
+        </div>
+      </div>
+    </ons-page>
   </template>
 
   <template id="status.html">
-    <ons-page id="statusPage"><ons-toolbar><div class="center">Status</div></ons-toolbar>
-      <div class="container">
-        <div class="title" id="msgStatus">Aguardando...</div>
-        <p id="subMsgStatus">Olhe para o telão.</p>
-        <div id="zonaPontos" style="display:none;"><div class="pontos-finais" id="meusPontos">0 pts</div></div>
+    <ons-page id="statusPage">
+      <div class="background-amarelo tela-centralizada">
+        <div class="container">
+          <div class="caixa-texto title" id="msgStatus">Aguardando...</div>
+          <p class="caixa-texto" id="subMsgStatus">Olhe para o telão.</p>
+          <div id="zonaPontos" style="display:none;">
+            <div class="pontos-finais caixa-texto" id="meusPontos">0 pts</div>
+          </div>
+        </div>
       </div>
     </ons-page>
   </template>
 
   <template id="game.html">
-    <ons-page id="gamePage"><ons-toolbar><div class="center">Responda!</div></ons-toolbar>
-      <div class="container">
-        <div class="grid-opcoes" id="botoesJogo">
-          <button class="btn-opcao btn-a" onclick="enviarResposta(0)">A</button>
-          <button class="btn-opcao btn-b" onclick="enviarResposta(1)">B</button>
-          <button class="btn-opcao btn-c" onclick="enviarResposta(2)">C</button>
-          <button class="btn-opcao btn-d" onclick="enviarResposta(3)">D</button>
+    <ons-page id="gamePage">
+      <div class="background-amarelo tela-centralizada">
+        <div class="container" style="width: 100%;">
+          <div class="grid-opcoes" id="botoesJogo">
+            <button class="btn-opcao btn-a" onclick="enviarResposta(0)">A</button>
+            <button class="btn-opcao btn-b" onclick="enviarResposta(1)">B</button>
+            <button class="btn-opcao btn-c" onclick="enviarResposta(2)">C</button>
+            <button class="btn-opcao btn-d" onclick="enviarResposta(3)">D</button>
+          </div>
         </div>
       </div>
     </ons-page>
