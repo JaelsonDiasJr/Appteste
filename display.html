@@ -3,139 +3,330 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Telão do Quiz</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <title>KomHoot - Exibição</title>
   <style>
-    body { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; color: #333; }
-    h1 { font-size: 3rem; margin-bottom: 10px; }
-    .pin { font-size: 8rem; font-weight: bold; color: #0076ff; letter-spacing: 15px; margin: 10px 0; }
-    #qrcode { padding: 20px; background: white; border-radius: 15px; }
-    .jogadores-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; max-width: 80%; margin-top: 30px; }
-    .jogador-badge { background: #333; color: white; padding: 10px 25px; border-radius: 30px; font-size: 1.5rem; font-weight: bold; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-image: url(www/css/fundo.jpg); /* Fundo amarelo da tela inicial */
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: cover;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden; /* Evita scroll na tela principal */
+    }
     
-    /* Telas Dinâmicas */
-    .tela { display: none; width: 90%; max-width: 1000px; text-align: center; flex-direction: column; }
-    .tela.ativa { display: flex; }
+    /* Cabeçalho superior */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 40px;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      border-bottom: 3px solid #000;
+      z-index: 10;
+    }
+    .top-bar h1 { margin: 0; color: #000; font-weight: 900; font-size: 2em; letter-spacing: 2px;}
+    .pin-badge { font-size: 1.8em; font-weight: bold; color: #333; background: #eee; padding: 5px 15px; border-radius: 8px; border: 2px solid #000; }
 
-    /* Jogo */
-    #textoPergunta { font-size: 3.5rem; background: white; padding: 40px; border-radius: 15px; margin-bottom: 20px; }
-    .grid-opcoes-telao { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .opcao-telao { padding: 30px; font-size: 2.5rem; color: white; border-radius: 15px; font-weight: bold; }
-    .bg-a { background-color: #e21b3c; } .bg-b { background-color: #1368ce; } .bg-c { background-color: #d89e00; } .bg-d { background-color: #26890c; }
-    #tempoRestante { font-size: 4rem; font-weight: bold; color: #dc3545; }
+    /* Área central de conteúdo */
+    .main-content {
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      width: 100%;
+      box-sizing: border-box;
+    }
 
-    /* Ranking e Pódio */
-    .ranking-lista { list-style: none; padding: 0; font-size: 2rem; width: 100%; max-width: 600px; margin: 0 auto; }
-    .ranking-item { display: flex; justify-content: space-between; background: white; padding: 15px 30px; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .podio-top { background: #ffd700; color: #856404; border: 2px solid #ffeeba; font-size: 2.5rem; font-weight: bold;}
-    .podio-segundo { background: #c0c0c0; color: #383d41; }
-    .podio-terceiro { background: #cd7f32; color: #fff; }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 8px 8px 0px #000000;
+      border: 4px solid #000;
+      width: 100%;
+      max-width: 1100px;
+      height: 68vh; /* Altura fixa para as telas internas */
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center; /* Centraliza conteúdo verticalmente */
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Classes utilitárias para esconder/mostrar telas */
+    .tela-area { display: none; width: 100%; height: 100%; flex-direction: column; justify-content: center; align-items: center; animation: fadeIn 0.5s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* 1. LOBBY */
+    #lobbyArea { display: flex; } /* Visível inicialmente */
+    .pin-display { font-size: 8em; font-weight: bold; color: #333; letter-spacing: 10px; margin: 10px 0; }
+    .lobby-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 20px; overflow-y: auto; max-height: 40vh; width: 100%; }
+    .lobby-item { background: #e9ecef; padding: 10px 20px; border-radius: 10px; font-weight: bold; font-size: 1.3em; border: 2px solid #ccc; }
+
+    /* 2. ÁREA DE JOGO (PERGUNTAS) */
+    .pergunta-texto { font-size: 2.8em; margin-bottom: 20px; font-weight: bold; color: #000; line-height: 1.2; }
+    .timer-circle { 
+      font-size: 3.5em; background: #fff; width: 110px; height: 110px; border-radius: 50%; 
+      display: flex; justify-content: center; align-items: center; 
+      margin: 0 auto 30px auto; font-weight: bold; border: 6px solid #000; color: #e21b3c;
+    }
+    .opcoes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 900px; }
+    .opcao { 
+      font-size: 2.2em; padding: 30px 20px; border-radius: 10px; color: white; font-weight: bold; 
+      border: 3px solid #000; box-shadow: 5px 5px 0px #000; word-break: break-word;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+    }
+    .opcao-0 { background-color: #e21b3c; } /* Vermelho A */
+    .opcao-1 { background-color: #1368ce; } /* Azul B */
+    .opcao-2 { background-color: #d89e00; } /* Amarelo C */
+    .opcao-3 { background-color: #26890c; } /* Verde D */
+    /* Classe para destacar a correta na ULTIMA pergunta */
+    .inativo { opacity: 0.2; filter: grayscale(80%); box-shadow: 0px 0px 0px #000; transform: scale(0.95); transition: all 0.5s; }
+
+    /* 3. NOVA: TELA DE RANKING PARCIAL (SUBSTITUI A PERGUNTA) */
+    .ranking-parcial-title { font-size: 2.5em; font-weight: 900; color: #000; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; }
+    .ranking-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 15px; align-items: center; width: 100%; max-width: 600px; }
+    .ranking-item { 
+      font-size: 2em; font-weight: bold; background: #f8f9fa; 
+      padding: 15px 30px; border-radius: 12px; border: 3px solid #000; 
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 5px 5px 0px #ccc;
+      animation: slideIn 0.5s ease-out;
+    }
+    @keyframes slideIn { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .rank-pos { background: #333; color: #fff; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 50%; margin-right: 15px; font-size: 1.2em; }
+    .rank-name { flex-grow: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 10px;}
+    .rank-pts { color: #1368ce; font-size: 1.1em; }
+
+    /* 4. PÓDIO FINAL */
+    .podio-title { font-size: 4em; font-weight: 900; margin-bottom: 30px; color: #000; }
+    .podio-list { list-style: none; padding: 0; width: 100%; max-width: 700px; display: flex; flex-direction: column; gap: 15px; }
+    .podio-item { 
+      font-size: 2.0em; background: #f8f9fa; padding: 20px 30px; 
+      border-radius: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;
+      border: 4px solid #000; box-shadow: 6px 6px 0px #000;
+    }
+    .medalha-0 { background-color: #ffd700; color: #000; border-color: #b59410; } /* Ouro */
+    .medalha-1 { background-color: #c0c0c0; color: #000; border-color: #888; } /* Prata */
+    .medalha-2 { background-color: #cd7f32; color: #fff; border-color: #8c5623; } /* Bronze */
+
+    /* Botão de áudio */
+    .audio-control { position: fixed; bottom: 20px; right: 20px; z-index: 100; }
+    .btn-audio { background-color: #000; color: white; border: 2px solid #fff; padding: 10px 20px; border-radius: 30px; cursor: pointer; font-size: 1em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    .btn-audio:hover { background-color: #333; }
   </style>
 </head>
 <body>
 
-  <div id="telaAguardando" class="tela ativa">
-    <h1>Entre no Quiz!</h1>
-    <div class="pin" id="pinDisplay">------</div>
-    <div style="display:flex; justify-content:center;"><div id="qrcode"></div></div>
-    <div class="jogadores-grid" id="listaJogadoresTelao"></div>
+  <div class="top-bar">
+    <h1>KomHoot</h1>
+    <div class="pin-badge"><span id="topPinDisplay">------</span></div>
   </div>
 
-  <div id="telaJogo" class="tela">
-    <div id="tempoRestante">20</div>
-    <div id="textoPergunta">...</div>
-    <div class="grid-opcoes-telao">
-      <div class="opcao-telao bg-a" id="dispOpt0">A)</div> <div class="opcao-telao bg-b" id="dispOpt1">B)</div>
-      <div class="opcao-telao bg-c" id="dispOpt2">C)</div> <div class="opcao-telao bg-d" id="dispOpt3">D)</div>
+  <div class="main-content">
+    <div class="container">
+      
+      <div id="lobbyArea" class="tela-area">
+        <h2>Acesse <strong>KomHoot.com</strong> no seu celular</h2>
+        <div class="pin-display" id="mainPinDisplay">------</div>
+        <h3>Jogadores Entrando (<span id="contagemJogadores">0</span>)</h3>
+        <ul class="lobby-list" id="lobbyList"></ul>
+      </div>
+
+      <div id="gameArea" class="tela-area">
+        <div class="pergunta-texto" id="textoPergunta">Carregando pergunta...</div>
+        <div class="timer-circle" id="timerDisplay">--</div>
+        
+        <div class="opcoes-grid" id="opcoesGrid">
+          <div class="opcao opcao-0" id="boxOpt0">A) <span id="txtOpt0"></span></div>
+          <div class="opcao opcao-1" id="boxOpt1">B) <span id="txtOpt1"></span></div>
+          <div class="opcao opcao-2" id="boxOpt2">C) <span id="txtOpt2"></span></div>
+          <div class="opcao opcao-3" id="boxOpt3">D) <span id="txtOpt3"></span></div>
+        </div>
+      </div>
+
+      <div id="rankingParcialArea" class="tela-area">
+        <div class="ranking-parcial-title">Placar Parcial:</div>
+        <ul class="ranking-list" id="listaRankingParcial"></ul>
+      </div>
+
+      <div id="podioArea" class="tela-area">
+        <div class="podio-title">Pódio Final 🏆</div>
+        <ul class="podio-list" id="podioList"></ul>
+      </div>
+
     </div>
   </div>
 
-  <div id="telaRanking" class="tela">
-    <h1 id="tituloRanking">Ranking Atual</h1>
-    <ul class="ranking-lista" id="listaRanking"></ul>
+  <div class="audio-control">
+    <button class="btn-audio" id="btnPlayAudio" onclick="ativarAudio()">🎵 Ativar Música</button>
   </div>
 
-  <div id="telaFimEspera" class="tela">
-    <h1>Fim de Jogo!</h1>
-    <p style="font-size: 2rem;">Aguardando o administrador liberar o pódio...</p>
-  </div>
+  <audio id="musicaFundo" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+  </audio>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyA2dxpfl9XwTjtX-DK4GBNihLMrQ8MVaDQ", authDomain: "meuquizapp-60807.firebaseapp.com",
-      databaseURL: "https://meuquizapp-60807-default-rtdb.firebaseio.com", projectId: "meuquizapp-60807",
-      storageBucket: "meuquizapp-60807.firebasestorage.app", messagingSenderId: "1036916991385", appId: "1:1036916991385:web:d1823e90a3c4fccb829f08"
+      apiKey: "AIzaSyA2dxpfl9XwTjtX-DK4GBNihLMrQ8MVaDQ", 
+      authDomain: "meuquizapp-60807.firebaseapp.com",
+      databaseURL: "https://meuquizapp-60807-default-rtdb.firebaseio.com", 
+      projectId: "meuquizapp-60807",
+      storageBucket: "meuquizapp-60807.firebasestorage.app", 
+      messagingSenderId: "1036916991385", 
+      appId: "1:1036916991385:web:d1823e90a3c4fccb829f08"
     };
 
-    const db = getDatabase(initializeApp(firebaseConfig));
-    const pin = new URLSearchParams(window.location.search).get('pin');
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const pinSala = urlParams.get('pin');
     let timerInterval;
 
-    function mudarTela(idTela) {
-      document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
-      document.getElementById(idTela).classList.add('ativa');
+    if (pinSala) {
+      document.getElementById('topPinDisplay').innerText = pinSala;
+      document.getElementById('mainPinDisplay').innerText = pinSala;
+      iniciarEscutaDaSala(pinSala);
+    } else {
+      document.querySelector('.container').innerHTML = "<h1>Sala inválida!</h1>";
     }
 
-    if (pin) {
-      document.getElementById('pinDisplay').innerText = pin;
-      new QRCode(document.getElementById("qrcode"), { text: pin, width: 200, height: 200 });
+    // Função auxiliar para esconder todas as telas antes de mostrar a correta
+    function esconderTodasAsTelas() {
+      const telas = document.querySelectorAll('.tela-area');
+      telas.forEach(tela => tela.style.display = 'none');
+    }
 
-      // Escuta lista de jogadores no lobby
-      onValue(ref(db, 'salas/' + pin + '/jogadores'), (snapshot) => {
-        const dados = snapshot.val();
-        document.getElementById('listaJogadoresTelao').innerHTML = dados ? Object.keys(dados).map(n => `<div class="jogador-badge">${n}</div>`).join('') : '';
-      });
-
-      // Escuta o Status Geral do Jogo
-      onValue(ref(db, 'salas/' + pin), (snapshot) => {
-        const sala = snapshot.val();
+    function iniciarEscutaDaSala(pin) {
+      onValue(ref(db, `salas/${pin}`), (snap) => {
+        const sala = snap.val();
         if (!sala) return;
 
-        if (sala.status === 'pergunta') {
-          mudarTela('telaJogo');
+        const lobbyArea = document.getElementById('lobbyArea');
+        const gameArea = document.getElementById('gameArea');
+        const rankingParcialArea = document.getElementById('rankingParcialArea');
+        const podioArea = document.getElementById('podioArea');
+
+        // LÓGICA DE ALTERNÂNCIA DE TELAS
+        if (sala.status === 'aguardando') {
+          esconderTodasAsTelas();
+          lobbyArea.style.display = 'flex';
+          
+          const jogadores = sala.jogadores || {};
+          document.getElementById('contagemJogadores').innerText = Object.keys(jogadores).length;
+          document.getElementById('lobbyList').innerHTML = Object.keys(jogadores).map(nome => `<li class="lobby-item">${nome}</li>`).join('');
+        } 
+        else if (sala.status === 'pergunta') {
+          esconderTodasAsTelas();
+          gameArea.style.display = 'flex'; // Mostra a tela de pergunta
+
           const p = sala.perguntas[sala.pergunta_atual];
           document.getElementById('textoPergunta').innerText = p.pergunta;
-          document.getElementById('dispOpt0').innerText = "A) " + p.opcoes[0];
-          document.getElementById('dispOpt1').innerText = "B) " + p.opcoes[1];
-          document.getElementById('dispOpt2').innerText = "C) " + p.opcoes[2];
-          document.getElementById('dispOpt3').innerText = "D) " + p.opcoes[3];
+          
+          // Preenche alternativas e reseta visual (remove classe inativo da rodada anterior)
+          for(let i=0; i<4; i++) {
+            const box = document.getElementById(`boxOpt${i}`);
+            document.getElementById(`txtOpt${i}`).innerText = p.opcoes[i];
+            box.classList.remove('inativo'); 
+          }
 
-          // Inicia o cronômetro no telão
+          // Cronômetro
           clearInterval(timerInterval);
           timerInterval = setInterval(() => {
-            let restante = Math.ceil((sala.timestamp_fim - Date.now()) / 1000);
-            document.getElementById('tempoRestante').innerText = restante > 0 ? restante : "Tempo Esgotado!";
-          }, 200);
-
-        } else if (sala.status === 'ranking' || sala.status === 'podio') {
+            let res = Math.ceil((sala.timestamp_fim - Date.now()) / 1000);
+            document.getElementById('timerDisplay').innerText = res > 0 ? res : "0";
+            if(res <= 0) clearInterval(timerInterval);
+          }, 1000);
+        }
+        else if (sala.status === 'ranking') {
           clearInterval(timerInterval);
-          mudarTela('telaRanking');
-          document.getElementById('tituloRanking').innerText = sala.status === 'podio' ? "🏆 Pódio Final 🏆" : "Pontuação Parcial";
+          document.getElementById('timerDisplay').innerText = "FIM";
           
-          // Ordena os jogadores por pontos
-          const pontos = sala.pontuacoes || {};
-          const rankingFormatado = Object.entries(pontos).sort((a, b) => b[1] - a[1]);
-          
-          const listaUI = document.getElementById('listaRanking');
-          listaUI.innerHTML = '';
-          rankingFormatado.forEach((jogadorData, index) => {
-            let classeCores = '';
-            if (sala.status === 'podio') {
-              if(index === 0) classeCores = 'podio-top';
-              if(index === 1) classeCores = 'podio-segundo';
-              if(index === 2) classeCores = 'podio-terceiro';
-            }
-            listaUI.innerHTML += `<li class="ranking-item ${classeCores}"><span>${index+1}º ${jogadorData[0]}</span> <span>${jogadorData[1]} pts</span></li>`;
-          });
+          const isUltimaPergunta = sala.pergunta_atual === sala.perguntas.length - 1;
 
-        } else if (sala.status === 'fim_espera') {
-          mudarTela('telaFimEspera');
+          if (!isUltimaPergunta) {
+            // --- MUDANÇA AQUI: NÃO É A ÚLTIMA, TROCA A TELA PELO PLACAR ---
+            esconderTodasAsTelas();
+            rankingParcialArea.style.display = 'flex'; // Mostra a NOVA TELA de placar
+            
+            const pts = sala.pontuacoes || {};
+            // Pega os 5 melhores e ordena
+            const top5 = Object.entries(pts)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 5);
+            
+            let htmlRanking = top5.map((jog, idx) => `
+              <li class="ranking-item">
+                <div style="display:flex; align-items:center;">
+                  <div class="rank-pos">${idx + 1}º</div>
+                  <span class="rank-name">${jog[0]}</span>
+                </div>
+                <span class="rank-pts">${jog[1]} pts</span>
+              </li>
+            `).join('');
+
+            document.getElementById('listaRankingParcial').innerHTML = htmlRanking || "<li class='ranking-item'>Aguardando pontuação...</li>";
+          } else {
+            // --- É A ÚLTIMA PERGUNTA: MANTÉM A TELA DE PERGUNTA E DESTACA A CORRETA ---
+            // Não troca de tela, apenas aplica o visual das respostas corretas/erradas na gameArea
+            gameArea.style.display = 'flex'; 
+            const p = sala.perguntas[sala.pergunta_atual];
+            const corretas = p.respostasCorretas; 
+            for(let i=0; i<4; i++) {
+              if(!corretas.includes(i)) {
+                document.getElementById(`boxOpt${i}`).classList.add('inativo');
+              }
+            }
+          }
+        }
+        else if (sala.status === 'podio') {
+          esconderTodasAsTelas();
+          podioArea.style.display = 'flex'; // Mostra a tela de pódio final
+
+          const pts = sala.pontuacoes || {};
+          const ranking = Object.entries(pts).sort((a, b) => b[1] - a[1]);
+          
+          const listaHtml = ranking.map((jogador, index) => {
+            let classeMedalha = index < 3 ? `medalha-${index}` : '';
+            return `
+              <li class="podio-item ${classeMedalha}">
+                <span>${index + 1}º ${jogador[0]}</span>
+                <span>${jogador[1]} pts</span>
+              </li>
+            `;
+          }).join('');
+
+          document.getElementById('podioList').innerHTML = listaHtml || "<p>Nenhum ponto registrado.</p>";
         }
       });
     }
+
+    // Áudio
+    window.ativarAudio = function() {
+      const audio = document.getElementById('musicaFundo');
+      const btn = document.getElementById('btnPlayAudio');
+      
+      if (audio.paused) {
+        audio.play().then(() => { btn.innerText = "⏸️ Pausar Música"; });
+      } else {
+        audio.pause();
+        btn.innerText = "🎵 Tocar Música";
+      }
+    };
   </script>
 </body>
 </html>

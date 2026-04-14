@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - Controle do Quiz</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
     .header { text-align: center; margin-bottom: 30px; }
@@ -102,9 +101,13 @@
     import { getDatabase, ref, set, onValue, update, remove, get, push } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyA2dxpfl9XwTjtX-DK4GBNihLMrQ8MVaDQ", authDomain: "meuquizapp-60807.firebaseapp.com",
-      databaseURL: "https://meuquizapp-60807-default-rtdb.firebaseio.com", projectId: "meuquizapp-60807",
-      storageBucket: "meuquizapp-60807.firebasestorage.app", messagingSenderId: "1036916991385", appId: "1:1036916991385:web:d1823e90a3c4fccb829f08"
+      apiKey: "AIzaSyA2dxpfl9XwTjtX-DK4GBNihLMrQ8MVaDQ", 
+      authDomain: "meuquizapp-60807.firebaseapp.com",
+      databaseURL: "https://meuquizapp-60807-default-rtdb.firebaseio.com", 
+      projectId: "meuquizapp-60807",
+      storageBucket: "meuquizapp-60807.firebasestorage.app", 
+      messagingSenderId: "1036916991385", 
+      appId: "1:1036916991385:web:d1823e90a3c4fccb829f08"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -116,7 +119,6 @@
     let perguntaAtualIndex = 0;
     let timerInterval;
 
-    // Alterna dinamicamente entre radio e checkbox no formulário
     window.alternarInputsResposta = function() {
       const tipo = document.getElementById('tipoPergunta').value;
       const container = document.getElementById('containerOpcoes');
@@ -164,7 +166,7 @@
       editandoIndex = index;
       const p = perguntas[index];
       document.getElementById('tipoPergunta').value = p.tipo;
-      alternarInputsResposta(); // Reseta os tipos de input
+      alternarInputsResposta();
       
       document.getElementById('perguntaTexto').value = p.pergunta;
       p.opcoes.forEach((opt, i) => document.getElementById(`opt${i}`).value = opt);
@@ -204,19 +206,91 @@
       });
     }
 
-    window.excluirP = function(i) { perguntas.splice(i, 1); atualizarInterfaceDaLista(); };
-    window.limparListaAtual = function() { perguntas = []; atualizarInterfaceDaLista(); };
+    window.excluirP = function(i) { 
+      perguntas.splice(i, 1); 
+      atualizarInterfaceDaLista(); 
+    };
+    
+    window.limparListaAtual = function() { 
+      perguntas = []; 
+      atualizarInterfaceDaLista(); 
+    };
 
-    // --- LOGICA DE SALA ---
+    // ==========================================
+    // LÓGICA DO BANCO DE QUIZZES (PERSISTÊNCIA)
+    // ==========================================
+
+    // Salva o array de perguntas atual como um novo documento na coleção "quizzes"
+    window.salvarQuizNoBanco = function() {
+      const nome = document.getElementById('nomeNovoQuiz').value;
+      if(!nome || !perguntas.length) return alert("Dê um nome e adicione perguntas à lista atual primeiro!");
+      
+      const novoQuizRef = push(ref(db, 'quizzes')); // Gera um ID único no Firebase
+      set(novoQuizRef, { 
+        nome: nome, 
+        perguntas: perguntas 
+      }).then(() => {
+        alert("Quiz salvo com sucesso no banco de dados!");
+        document.getElementById('nomeNovoQuiz').value = "";
+      }).catch((error) => {
+        console.error("Erro ao salvar:", error);
+        alert("Erro ao salvar o quiz.");
+      });
+    };
+
+    // Escuta em tempo real as mudanças no nó "quizzes" para popular a interface
+    function carregarQuizzesBanco() {
+      onValue(ref(db, 'quizzes'), (snap) => {
+        const lista = document.getElementById('listaQuizzesBanco');
+        lista.innerHTML = ""; // Limpa a lista antes de repopular
+        const dados = snap.val();
+        
+        if(dados) {
+          Object.entries(dados).forEach(([id, quiz]) => {
+            const li = document.createElement('li');
+            li.className = "player-item";
+            li.innerHTML = `
+              ${quiz.nome} 
+              <button class="btn-action" onclick="usarQuiz('${id}')">Carregar</button>
+            `;
+            lista.appendChild(li);
+          });
+        } else {
+          lista.innerHTML = "<p style='text-align:center; color:#888;'>Nenhum quiz salvo.</p>";
+        }
+      });
+    }
+
+    // Busca um quiz específico pelo ID e substitui a lista atual
+    window.usarQuiz = async function(id) {
+      const snap = await get(ref(db, `quizzes/${id}`));
+      if(snap.exists()) {
+        perguntas = snap.val().perguntas || [];
+        atualizarInterfaceDaLista();
+        alert("Quiz carregado para a lista atual!");
+      }
+    };
+
+    // ==========================================
+    // LÓGICA DE SALA E PARTIDA
+    // ==========================================
+
     window.gerarSala = function() {
       codigoSala = Math.floor(100000 + Math.random() * 900000).toString();
       document.getElementById('pinDisplay').innerText = codigoSala;
-      set(ref(db, `salas/${codigoSala}`), { status: 'aguardando', perguntas, pergunta_atual: 0 });
+      
+      set(ref(db, `salas/${codigoSala}`), { 
+        status: 'aguardando', 
+        perguntas, 
+        pergunta_atual: 0 
+      });
+      
       onValue(ref(db, `salas/${codigoSala}/jogadores`), snap => {
         const d = snap.val() || {};
         document.getElementById('playerCount').innerText = Object.keys(d).length;
         document.getElementById('lobbyList').innerHTML = Object.keys(d).map(n => `<li class="player-item">${n}</li>`).join('');
       });
+      
       window.open(`display.html?pin=${codigoSala}`, '_blank');
     };
 
@@ -232,10 +306,14 @@
       const inicio = Date.now();
       const fim = inicio + (p.tempo * 1000);
       
+      document.getElementById('adminStatusPergunta').innerText = (idx + 1) + " / " + perguntas.length;
+
       set(ref(db, `salas/${codigoSala}/respostas`), null).then(() => {
         update(ref(db, `salas/${codigoSala}`), { 
-          status: 'pergunta', pergunta_atual: idx, 
-          timestamp_inicio: inicio, timestamp_fim: fim 
+          status: 'pergunta', 
+          pergunta_atual: idx, 
+          timestamp_inicio: inicio, 
+          timestamp_fim: fim 
         });
       });
 
@@ -243,7 +321,10 @@
       timerInterval = setInterval(() => {
         let res = Math.ceil((fim - Date.now()) / 1000);
         document.getElementById('adminTimer').innerText = res > 0 ? res + "s" : "Fim!";
-        if(res <= 0) { clearInterval(timerInterval); processarResultados(); }
+        if(res <= 0) { 
+          clearInterval(timerInterval); 
+          processarResultados(); 
+        }
       }, 1000);
     }
 
@@ -255,6 +336,7 @@
       const resps = dados.respostas || {};
 
       for(const [player, r] of Object.entries(resps)) {
+        // Valida se as respostas enviadas pelo array batem exatamente com as corretas
         const acertou = r.alternativas.length === p.respostasCorretas.length && 
                         r.alternativas.every(v => p.respostasCorretas.includes(v));
         if(acertou) {
@@ -275,12 +357,16 @@
     window.mostrarPodio = function() { 
       update(ref(db, `salas/${codigoSala}`), { status: 'podio' }); 
       document.getElementById('btnEncerrar').style.display = 'block';
+      document.getElementById('btnPodio').style.display = 'none';
     };
 
-    window.encerrarSala = function() { remove(ref(db, `salas/${codigoSala}`)).then(() => location.reload()); };
+    window.encerrarSala = function() { 
+      remove(ref(db, `salas/${codigoSala}`)).then(() => location.reload()); 
+    };
 
-    // Inicializa os inputs
+    // Inicialização
     alternarInputsResposta();
+    carregarQuizzesBanco(); // Carrega a lista do Firebase ao iniciar a página
   </script>
 </body>
 </html>

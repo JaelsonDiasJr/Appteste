@@ -15,6 +15,10 @@ const db = getDatabase(initializeApp(firebaseConfig));
 window.salaAtual = ""; 
 window.jogadorAtual = "";
 
+// Variáveis para controlar o estado da pergunta atual no lado do cliente
+let selecoesAtuais = [];
+let tipoPerguntaAtual = "";
+
 window.avancarParaNome = async function() {
   const pin = document.getElementById('roomCode').value;
   if (!pin) return ons.notification.alert('PIN vazio!');
@@ -36,7 +40,30 @@ window.entrarNoLobby = function() {
   });
 };
 
-// Função unificada para enviar respostas (seja um ou vários itens)
+// Gerencia o clique nos botões de alternativa
+window.selecionarOpcao = function(index, elemento) {
+  if (tipoPerguntaAtual === 'unica') {
+    // Para única escolha, envia direto e destaca a borda
+    elemento.style.border = "5px solid white";
+    window.enviarResposta([index]);
+  } else {
+    // Para múltipla escolha, adiciona/remove do array de controle
+    if (selecoesAtuais.includes(index)) {
+      selecoesAtuais = selecoesAtuais.filter(i => i !== index);
+      elemento.style.border = "3px solid #000"; // Remove destaque
+    } else {
+      selecoesAtuais.push(index);
+      elemento.style.border = "5px solid white"; // Adiciona destaque
+    }
+  }
+};
+
+// Disparado pelo botão de confirmar (apenas para múltipla escolha)
+window.confirmarMultipla = function() {
+  if (selecoesAtuais.length === 0) return ons.notification.alert('Selecione ao menos uma opção!');
+  window.enviarResposta(selecoesAtuais);
+};
+
 window.enviarResposta = function(escolhas) {
   const arrayRespostas = Array.isArray(escolhas) ? escolhas : [escolhas];
   const respRef = ref(db, `salas/${window.salaAtual}/respostas/${window.jogadorAtual}`);
@@ -57,18 +84,43 @@ function iniciarEscutaDaSala() {
     const isGamePage = nav.topPage && nav.topPage.id === 'gamePage';
     
     if (sala.status === 'pergunta') {
+      const perguntaData = sala.perguntas[sala.pergunta_atual];
+      tipoPerguntaAtual = perguntaData.tipo;
+      selecoesAtuais = []; // Reseta o estado local de seleções
+      
       if(!isGamePage) {
-        // Passamos a pergunta atual para a página para decidir como exibir os botões
-        nav.pushPage('game.html', { data: { pergunta: sala.perguntas[sala.pergunta_atual] } });
+        // Empurra a tela e configura a interface assim que o DOM for montado
+        nav.pushPage('game.html').then(() => {
+            configurarTelaJogo(perguntaData);
+        });
       } else {
         const bc = document.getElementById('botoesJogo');
         if(bc) bc.classList.remove('desativado');
+        configurarTelaJogo(perguntaData);
       }
     } else {
       if(isGamePage) nav.popPage();
       atualizarTelaStatus(sala);
     }
   });
+}
+
+function configurarTelaJogo(pergunta) {
+  const btnConfirmar = document.getElementById('btnConfirmar');
+  const instrucao = document.getElementById('tipoInstrucao');
+  
+  // Reseta visualmente as bordas dos botões a cada nova pergunta
+  document.querySelectorAll('.btn-opcao').forEach(btn => {
+    btn.style.border = "3px solid #000";
+  });
+
+  if (pergunta.tipo === 'multipla') {
+    if(btnConfirmar) btnConfirmar.style.display = 'block';
+    if(instrucao) instrucao.innerText = "Múltipla Escolha - Selecione as corretas";
+  } else {
+    if(btnConfirmar) btnConfirmar.style.display = 'none';
+    if(instrucao) instrucao.innerText = "Escolha uma única opção";
+  }
 }
 
 function atualizarTelaStatus(sala) {
